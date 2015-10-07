@@ -1,0 +1,3 @@
+test ALL=(root) NOPASSWD: /usr/bin/apt-get
+test ALL=(root) NOPASSWD: /usr/bin/apt-cache
+

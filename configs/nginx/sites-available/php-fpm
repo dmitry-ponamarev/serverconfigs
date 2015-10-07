@@ -1,0 +1,39 @@
+fastcgi_cache_path /tmp/nginx/ levels=1:2 keys_zone=fastcgicache:16m max_size=256m inactive=60m;
+fastcgi_cache_key "$scheme$request_method$host$request_uri";
+
+upstream php-fpm {
+	server unix:/var/run/php5-fpm.sock;
+}
+
+
+server {
+        listen   8080; 
+
+        root /var/www/vhost2; 
+        index index.php index.html index.htm;
+
+        server_name www.ec2-54-69-229-103.us-west-2.compute.amazonaws.com; 
+	location "/" {
+		index index.php index.html index.htm;
+		try_files	$uri $uri/	=404;
+		fastcgi_pass	php-fpm;
+		include fastcgi_params;
+		fastcgi_split_path_info			^(.+?\.php)(/.*)?$;
+		fastcgi_param	SCRIPT_FILENAME		$document_root$fastcgi_script_name;
+		fastcgi_param	PATH_TRANSLATED		$document_root$fastcgi_script_name;
+		set		$path_info		$fastcgi_path_info;
+		fastcgi_param	PATH_INFO		$path_info;
+		fastcgi_param	SERVER_ADMIN		email@example.com;
+		fastcgi_param	SERVER_SIGNATURE	nginx/$nginx_version;
+		fastcgi_index	index.php;
+		fastcgi_cache fastcgicache;
+		fastcgi_cache_valid 200 60m;
+		fastcgi_hide_header "Set-Cookie";
+		fastcgi_ignore_headers "Cache-Control" "Expires";
+		expires -1;
+		add_header Last-Modified $sent_http_Expires;
+	}
+	if ($http_cookie = "PHPSESSID")	{
+		set $no_cache 1;
+	}
+}
